@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <title>ColaZap</title>
+    <style>
+        /* Reset de estilos */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+
+        }
+
+        /* Estilos da página do WhatsApp Web */
+        .whatsapp-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            justify-content: center;
+
+        }
+
+        .header {
+            background-color: #cf29a0;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .chat {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            width: 80vw;
+            background-color:#e790cf;
+        
+        }
+
+        .contact-list {
+            flex-basis: 30%;
+            background-color: #f5f5f5;
+            overflow-y: auto;
+        }
+
+        .contact {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .contact.active {
+            background-color: #e1ddd0;
+        }
+
+        .contact img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .message-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+
+        .message-bubble.received {
+            background-color: #fff;
+            align-self: flex-start;
+        }
+
+        .message-bubble.sent {
+            background-color: #dbe4d3;
+            align-self: flex-end;
+        }
+
+        .footer {
+            background-color: #e9dbdb;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .footer select {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+
+        .footer input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+
+        
+
+        .footer button {
+            padding: 8px 20px;
+            background-color: #cf29a0;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .footer button:hover {
+            background-color: #df76c1;
+        }
+
+        .message-text {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    word-wrap: break-word;
+}
+
+.message-input {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-input select {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 20px;
+    margin-right: 5px;
+    outline: none;
+}
+
+
+.message-input input {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 20px;
+    margin-right: 5px;
+    outline: none;
+}
+
+
+.message-input button {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s;
+}
+
+.message-input button:hover {
+    background-color: #45a049;
+}
+
+    </style>
+</head>
+    <body>
+        <div class="whatsapp-container">
+            <header class="header">
+                <h1>ColaZap</h1>
+            </header>
+            <main class="chat">
+                <!-- Lista de contatos e mensagens -->
+                <div class="contact-list">
+                    
+                    <div class="contact active">       
+                        <div class="contact-info">
+
+                        </div>
+                    </div>
+                 
+                </div>
+                <div class="message-area" id="message-area">
+                    
+                    <!-- Outras mensagens aqui -->
+                </div>
+            </main>
+            <footer class="footer">
+                <form action="/chat" method="post"></form>
+                <select name="usuario" id="usuario" onChange='recuperaMensagens()'>
+                    <option value="telefone">Nome</option>
+                  </select>
+                  <input type="text" id="conteudo" placeholder="Digite sua mensagem">
+                  <button onclick="enviar_mensagem()">Enviar</button>
+            </footer>
+        </div>
+
+        <script type="text/javascript">
+            
+            function solicita_usuarios() {
+
+                $.ajax({
+                    url: "/retorna_usuarios",
+                    type: "GET",
+                    success: function(usuarios){
+                    for (let i = 0; i <usuarios.length; i++){
+                         let texto_html = '<option value="'+usuarios[i]['telefone']+'">'+usuarios[i]['nome']+'</option>'
+                        $('#usuario').append(texto_html)
+                        }
+                    
+                    },
+
+                    error: function(){
+                        alert("Erro ao recuperar os contatos. 🙄😥")
+                    }
+
+                })
+            }
+
+            $(document).ready(solicita_usuarios())
+
+        </script>
+
+        <script type="text/javascript">
+            function recupera_mensagens(){
+
+                $.ajax({
+                    url: '/get/mensagens/' + $("#usuario").val() 
+                })
+
+            }
+        </script>
+
+
+    <script type="text/javascript">
+        function recuperaMensagens(){
+            // Solicitando as mensagens via ajax
+            $.ajax({
+                url: '/get/mensagens/' + $("#usuario").val(),
+                type: "GET",
+                success: function(lista_mensagens){
+                    $('#message-area').empty()
+                    for (let i = 0; i < lista_mensagens.length; i ++){
+                        let tag = lista_mensagens [i]["nome"] + ":" + "<p>" + lista_mensagens [i]["mensagem"]+"</p>"
+                        $('#message-area').append(tag)
+                    }
+                }
+        })
+        }
+
+        $(document).ready(recuperaMensagens())
+</script>
+
+    <script type="text/javascript">
+        function enviar_mensagem(){
+            var dados = {
+            usuario : $("#usuario").val(),
+            mensagem : $("#conteudo").val(), 
+            }
+
+
+            $.ajax({
+                url:"/enviar_mensagem",
+                type: "POST",
+                data:  JSON.stringify(dados),
+                contentType: "application/json",
+                success: function(){
+                $("#resposta").append("Cadastro realizado com sucesso!");
+            },
+            error: function() {
+                $("#resposta").append("Erro ao enviar mensagem.");
+            }
+                
+                
+            })
+        }
+    </script>
+    
+
+    </body>
+
+</html>
+
+
+
+
